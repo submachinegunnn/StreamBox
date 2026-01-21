@@ -1,0 +1,12 @@
+body {
+background: #000;
+color: #fff;
+font-family: Arial, sans-serif;
+}
+button {
+margin: 4px;
+padding: 8px 12px;
+}
+#movies div {
+margin: 8px 0;
+}
