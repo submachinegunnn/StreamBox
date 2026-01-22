@@ -1,17 +1,17 @@
 const params = new URLSearchParams(location.search);
 const id = params.get("id");
 const type = params.get("type");
+const season = params.get("season") || 1;
+const episode = params.get("episode") || 1;
 
-let url =
-  type === "movie"
-    ? `https://www.vidking.net/embed/movie/${id}?autoPlay=true`
-    : `https://www.vidking.net/embed/tv/${id}/1/1?autoPlay=true&nextEpisode=true&episodeSelector=true`;
+const iframe = document.getElementById("player");
 
-document.getElementById("player").innerHTML = `
-  <iframe src="${url}" width="100%" height="600" frameborder="0" allowfullscreen></iframe>
-`;
+let src = "";
 
-window.addEventListener("message", e => {
-  if (!e.data?.includes("PLAYER_EVENT")) return;
-  localStorage.setItem("continue_" + id, e.data);
-});
+if (type === "tv") {
+  src = `https://www.vidking.net/embed/tv/${id}/${season}/${episode}?autoPlay=true&nextEpisode=true&episodeSelector=true`;
+} else {
+  src = `https://www.vidking.net/embed/movie/${id}?autoPlay=true`;
+}
+
+iframe.src = src;
