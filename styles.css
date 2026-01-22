@@ -226,3 +226,54 @@ section h2 {
     padding-bottom: 80px;
   }
 }
+
+.card {
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 40px rgba(0,0,0,.6);
+}
+
+button {
+  transition: transform .15s ease;
+}
+
+button:active {
+  transform: scale(.95);
+}
+
+/* =========================
+   PLAYER
+========================= */
+
+#player-overlay {
+  position: fixed;
+  inset: 0;
+  background: black;
+  display: none;
+  z-index: 200;
+}
+
+#player {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.player-ui {
+  position: absolute;
+  top: env(safe-area-inset-top);
+  right: 16px;
+}
+
+#close-player {
+  background: rgba(0,0,0,.6);
+  border: none;
+  color: white;
+  font-size: 20px;
+  padding: 10px 14px;
+  border-radius: 50%;
+}
+
