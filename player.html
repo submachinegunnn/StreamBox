@@ -1,13 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Player</title>
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>StreamBox Player</title>
+<link rel="stylesheet" href="styles.css">
 </head>
-<body>
 
-<a href="/" style="padding:20px;display:block">← Back</a>
-<div id="player"></div>
+<body class="player-page">
+
+<div class="player-container">
+  <button class="back-btn" onclick="history.back()">←</button>
+  <iframe
+    id="player"
+    allowfullscreen
+    frameborder="0">
+  </iframe>
+</div>
 
 <script src="player.js"></script>
 </body>
