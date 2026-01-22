@@ -54,3 +54,16 @@ input {
   height: 100vh;
   border: none;
 }
+
+.player-page {
+  margin: 0;
+  background: black;
+}
+
+.player-page iframe {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  border: none;
+}
