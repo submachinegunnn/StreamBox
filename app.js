@@ -75,19 +75,21 @@ async function search(query) {
   moviesRail.innerHTML = "";
   tvRail.innerHTML = "";
 
-  const [movies, tv] = await Promise.all([
-    tmdb(`/search/movie?query=${query}`),
-    tmdb(`/search/tv?query=${query}`)
-  ]);
+  const res = await tmdb(`/search/multi?query=${query}`);
 
-  movies.results.forEach(m =>
-    renderCard(m, "movie", moviesRail)
-  );
+  res.results.forEach(item => {
+    if (!item.poster_path) return;
 
-  tv.results.forEach(t =>
-    renderCard(t, "tv", tvRail)
-  );
+    if (item.media_type === "movie") {
+      renderCard(item, "movie", moviesRail);
+    }
+
+    if (item.media_type === "tv") {
+      renderCard(item, "tv", tvRail);
+    }
+  });
 }
+
 
 /* -----------------------------
    CONTINUE WATCHING
@@ -108,3 +110,4 @@ function loadContinue() {
    INIT
 ----------------------------- */
 loadHome();
+
