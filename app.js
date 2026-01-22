@@ -1,58 +1,54 @@
-const API='/api/tmdb';
-const get=path=>fetch(`${API}?path=${encodeURIComponent(path)}`).then(r=>r.json());
+const TOKEN = import.meta?.env?.TMDB_TOKEN || "";
+const API = "https://api.themoviedb.org/3";
+const IMG = "https://image.tmdb.org/t/p/w500";
 
-
-function card(item,type){
-const d=document.createElement('div');
-d.className='card';
-d.innerHTML=`<img src="https://image.tmdb.org/t/p/w500${item.poster_path}"><p>${item.title||item.name}</p>`;
-d.onclick=()=>location.href= type==='tv'?`/episode.html?id=${item.id}`:`/player.html?type=${type}&id=${item.id}`;
-return d;
-}
-
-
-function rail(el,items,type){el.innerHTML='';items.forEach(i=>i.poster_path&&el.append(card(i,type)))}
-
-
-async function home(){
-rail(movies,(await get('/movie/popular')).results,'movie');
-rail(tv,(await get('/tv/popular')).results,'tv');
-recommendations();
-continueWatching();
-}
-
-
-function continueWatching(){
-const el=document.getElementById('continue');
-el.innerHTML='';
-Object.values(localStorage).forEach(v=>{
-try{const d=JSON.parse(v);if(d.id)el.append(card(d,d.type));}catch{}
-})
-}
-
-
-async function recommendations(){
-const watched=Object.values(localStorage).map(v=>{try{return JSON.parse(v)}catch{}}).filter(Boolean);
-if(!watched.length) return;
-const last=watched.pop();
-const r=await get(`/${last.type}/${last.id}/recommendations`);
-rail(recommended,r.results,last.type);
-}
-
-
-search.oninput=async e=>{
-if(!e.target.value)return searchResults.innerHTML='';
-const r=await get(`/search/multi?query=${e.target.value}`);
-searchResults.innerHTML='';
-r.results.slice(0,8).forEach(i=>{
-if(!i.poster_path)return;
-const d=document.createElement('div');
-d.className='search-item';
-d.textContent=i.title||i.name;
-d.onclick=()=>location.href=i.media_type==='tv'?`/episode.html?id=${i.id}`:`/player.html?type=${i.media_type}&id=${i.id}`;
-searchResults.append(d);
-})
+const headers = {
+  Authorization: `Bearer ${TOKEN}`,
+  "Content-Type": "application/json"
 };
 
+const rails = {
+  trending: "/trending/all/week",
+  movies: "/movie/popular",
+  tv: "/tv/popular"
+};
 
-home();
+async function fetchList(endpoint, container) {
+  const res = await fetch(API + endpoint, { headers });
+  const data = await res.json();
+  renderCards(data.results, container);
+}
+
+function renderCards(items, containerId) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = "";
+
+  items.forEach(i => {
+    if (!i.poster_path) return;
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <img src="${IMG + i.poster_path}" />
+    `;
+    card.onclick = () => openPlayer(i);
+    el.appendChild(card);
+  });
+}
+
+function openPlayer(item) {
+  const type = item.media_type || (item.title ? "movie" : "tv");
+  location.href = `player.html?id=${item.id}&type=${type}`;
+}
+
+async function loadHero() {
+  const res = await fetch(API + "/trending/movie/week", { headers });
+  const movie = (await res.json()).results[0];
+  document.getElementById("hero").style.backgroundImage =
+    `url(${IMG + movie.backdrop_path})`;
+}
+
+loadHero();
+fetchList(rails.trending, "trending");
+fetchList(rails.movies, "movies");
+fetchList(rails.tv, "tv");
