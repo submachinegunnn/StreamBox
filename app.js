@@ -1,118 +1,130 @@
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("✅ DOM loaded");
+  console.log("✅ StreamBox loaded");
+
+  /* =========================
+     CONFIG
+  ========================= */
 
   const TMDB_TOKEN = window.TMDB_API_KEY;
   const BASE = "https://api.themoviedb.org/3";
   const IMG = "https://image.tmdb.org/t/p/w500";
 
-  const trendingRail = document.getElementById("trending");
-  const moviesRail = document.getElementById("movies");
-  const tvRail = document.getElementById("tv");
-  const continueRail = document.getElementById("continue");
+  if (!TMDB_TOKEN) {
+    console.error("❌ TMDB_API_KEY missing");
+    return;
+  }
+
+  /* =========================
+     ELEMENTS
+  ========================= */
+
+  const rails = {
+    trending: document.getElementById("trending"),
+    movies: document.getElementById("movies"),
+    tv: document.getElementById("tv"),
+    continue: document.getElementById("continue"),
+  };
 
   const searchInput = document.getElementById("search");
+  const searchResults = document.getElementById("search-results");
+  const searchPage = document.getElementById("search-page");
+  const searchGrid = document.getElementById("search-grid");
 
-  const playerOverlay = document.getElementById("player-overlay");
-  const playerFrame = document.getElementById("player-frame");
-  const closePlayer = document.getElementById("close-player");
-
-  /* ---------------- TMDB ---------------- */
+  /* =========================
+     TMDB FETCH
+  ========================= */
 
   async function tmdb(endpoint) {
     const res = await fetch(`${BASE}${endpoint}`, {
       headers: {
         Authorization: `Bearer ${TMDB_TOKEN}`,
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     });
+
+    if (!res.ok) {
+      console.error("TMDB error:", res.status);
+      return { results: [] };
+    }
+
     return res.json();
   }
 
-  /* ---------------- PLAYER ---------------- */
+  /* =========================
+     CARD CREATOR
+  ========================= */
 
-  function openPlayer(item, type) {
-    let url;
+  function createCard(item) {
+    if (!item.poster_path) return null;
 
-    if (type === "tv") {
-      url = `https://www.vidking.net/embed/tv/${item.id}/1/1?autoPlay=true&episodeSelector=true&nextEpisode=true`;
-    } else {
-      url = `https://www.vidking.net/embed/movie/${item.id}?autoPlay=true`;
-    }
+    const card = document.createElement("div");
+    card.className = "card";
 
-    playerFrame.src = url;
-    playerOverlay.hidden = false;
-
-    saveContinueWatching(item, type);
-  }
-
-  closePlayer.onclick = () => {
-    playerOverlay.hidden = true;
-    playerFrame.src = "";
-  };
-
-  /* ---------------- CARDS ---------------- */
-
-  function card(item, type) {
-    const el = document.createElement("div");
-    el.className = "card";
-
-    el.innerHTML = `
-      <img src="${IMG + item.poster_path}" alt="">
+    card.innerHTML = `
+      <img src="${IMG + item.poster_path}" alt="${item.title || item.name}">
     `;
 
-    el.onclick = () => openPlayer(item, type);
-    return el;
+    card.onclick = () => {
+      const type = item.media_type || (item.first_air_date ? "tv" : "movie");
+      window.location.href = `player.html?id=${item.id}&type=${type}`;
+    };
+
+    return card;
   }
 
-  /* ---------------- LOAD RAILS ---------------- */
+  /* =========================
+     LOAD RAILS
+  ========================= */
 
-  async function load() {
-    const t = await tmdb("/trending/all/week");
-    t.results
-      .filter(i => i.poster_path)
-      .forEach(i =>
-        trendingRail.appendChild(card(i, i.media_type))
-      );
+  async function loadRails() {
+    console.log("📡 Loading content…");
 
-    const m = await tmdb("/movie/popular");
-    m.results
-      .filter(i => i.poster_path)
-      .forEach(i =>
-        moviesRail.appendChild(card(i, "movie"))
-      );
+    const trending = await tmdb("/trending/all/week");
+    trending.results.forEach(i => {
+      const c = createCard(i);
+      if (c) rails.trending.appendChild(c);
+    });
 
-    const s = await tmdb("/tv/popular");
-    s.results
-      .filter(i => i.poster_path)
-      .forEach(i =>
-        tvRail.appendChild(card(i, "tv"))
-      );
+    const movies = await tmdb("/movie/popular");
+    movies.results.forEach(i => {
+      const c = createCard(i);
+      if (c) rails.movies.appendChild(c);
+    });
+
+    const tv = await tmdb("/tv/popular");
+    tv.results.forEach(i => {
+      const c = createCard(i);
+      if (c) rails.tv.appendChild(c);
+    });
+
+    loadContinueWatching();
 
     console.log("✅ Cards rendered");
   }
 
-  /* ---------------- CONTINUE WATCHING ---------------- */
+  /* =========================
+     CONTINUE WATCHING
+  ========================= */
 
-  function saveContinueWatching(item, type) {
-    const list = JSON.parse(localStorage.getItem("continue") || "[]");
-
-    if (!list.find(i => i.id === item.id)) {
-      list.unshift({ ...item, media_type: type });
-      localStorage.setItem("continue", JSON.stringify(list.slice(0, 10)));
-    }
-
-    loadContinueWatching();
+  function saveContinue(item) {
+    let list = JSON.parse(localStorage.getItem("continue") || "[]");
+    list = list.filter(i => i.id !== item.id);
+    list.unshift(item);
+    localStorage.setItem("continue", JSON.stringify(list.slice(0, 10)));
   }
 
   function loadContinueWatching() {
+    rails.continue.innerHTML = "";
     const list = JSON.parse(localStorage.getItem("continue") || "[]");
-    continueRail.innerHTML = "";
-    list.forEach(i =>
-      continueRail.appendChild(card(i, i.media_type))
-    );
+    list.forEach(i => {
+      const c = createCard(i);
+      if (c) rails.continue.appendChild(c);
+    });
   }
 
-  /* ---------------- SEARCH PAGE ---------------- */
+  /* =========================
+     SEARCH (ENTER KEY)
+  ========================= */
 
   searchInput.addEventListener("keydown", async e => {
     if (e.key !== "Enter") return;
@@ -120,25 +132,63 @@ document.addEventListener("DOMContentLoaded", () => {
     const q = searchInput.value.trim();
     if (!q) return;
 
+    searchGrid.innerHTML = "";
+    searchPage.hidden = false;
+    searchResults.style.display = "none";
+
     const data = await tmdb(`/search/multi?query=${encodeURIComponent(q)}`);
-
-    document.getElementById("search-page").hidden = false;
-    trendingRail.parentElement.hidden = true;
-    moviesRail.parentElement.hidden = true;
-    tvRail.parentElement.hidden = true;
-
-    const grid = document.getElementById("search-grid");
-    grid.innerHTML = "";
 
     data.results
       .filter(i => i.poster_path)
-      .forEach(i =>
-        grid.appendChild(card(i, i.media_type))
-      );
+      .forEach(i => {
+        const c = createCard(i);
+        if (c) searchGrid.appendChild(c);
+      });
   });
 
-  /* ---------------- INIT ---------------- */
+  /* =========================
+     SEARCH AUTOCOMPLETE
+  ========================= */
 
-  loadContinueWatching();
-  load();
+  let searchTimer;
+
+  searchInput.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+
+    const q = searchInput.value.trim();
+    if (!q) {
+      searchResults.style.display = "none";
+      return;
+    }
+
+    searchTimer = setTimeout(async () => {
+      const data = await tmdb(`/search/multi?query=${encodeURIComponent(q)}`);
+
+      searchResults.innerHTML = "";
+      searchResults.style.display = "block";
+
+      data.results
+        .filter(i => i.poster_path)
+        .slice(0, 6)
+        .forEach(i => {
+          const row = document.createElement("div");
+          row.className = "search-item";
+          row.innerHTML = `
+            <img src="${IMG + i.poster_path}">
+            <div>${i.title || i.name}</div>
+          `;
+          row.onclick = () => {
+            const type = i.media_type || "movie";
+            window.location.href = `player.html?id=${i.id}&type=${type}`;
+          };
+          searchResults.appendChild(row);
+        });
+    }, 300);
+  });
+
+  /* =========================
+     INIT
+  ========================= */
+
+  loadRails();
 });
