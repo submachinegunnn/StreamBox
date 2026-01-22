@@ -1,16 +1,20 @@
 export default async function handler(req, res) {
-const { path } = req.query;
-if (!path) return res.status(400).json({ error: 'Missing path' });
+  const endpoint = req.query.endpoint;
 
+  if (!endpoint) {
+    return res.status(400).json({ error: "Missing endpoint" });
+  }
 
-const r = await fetch(`https://api.themoviedb.org/3${path}`, {
-headers: {
-Authorization: `Bearer ${process.env.TMDB_KEY}`,
-'Content-Type': 'application/json'
-}
-});
+  const response = await fetch(
+    `https://api.themoviedb.org/3${endpoint}`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.TMDB_TOKEN}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
 
-
-const data = await r.json();
-res.status(200).json(data);
+  const data = await response.json();
+  res.status(200).json(data);
 }
