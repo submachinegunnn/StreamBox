@@ -1,36 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>StreamBox Player</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="utf-8">
+  <title>Player</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="player-page">
+<body class="player">
 
-<button class="back-btn" onclick="history.back()">←</button>
+<a class="back" href="index.html">←</a>
+<iframe id="frame" allowfullscreen></iframe>
 
-<iframe
-  id="player"
-  allowfullscreen
-  allow="autoplay; fullscreen">
-</iframe>
-
-<script>
-  const params = new URLSearchParams(location.search);
-  const id = params.get("id");
-  const type = params.get("type");
-
-  let src;
-  if (type === "tv") {
-    src = `https://www.vidking.net/embed/tv/${id}/1/1?autoPlay=true&episodeSelector=true&nextEpisode=true`;
-  } else {
-    src = `https://www.vidking.net/embed/movie/${id}?autoPlay=true`;
-  }
-
-  document.getElementById("player").src = src;
-</script>
-
+<script src="player.js"></script>
 </body>
 </html>
