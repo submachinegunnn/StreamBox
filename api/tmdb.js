@@ -1,15 +1,19 @@
-export default async function handler(req, res) {
-  const { path, query = "" } = req.query;
+const BASE = "https://api.themoviedb.org/3";
 
-  const url = `https://api.themoviedb.org/3/${path}?${query}`;
-
-  const response = await fetch(url, {
+export async function tmdb(endpoint) {
+  const res = await fetch(BASE + endpoint, {
     headers: {
-      Authorization: `Bearer ${process.env.TMDB_KEY}`,
-      "Content-Type": "application/json",
-    },
+      Authorization: `Bearer ${window.TMDB_TOKEN}`,
+      "Content-Type": "application/json"
+    }
   });
 
-  const data = await response.json();
-  res.status(200).json(data);
+  if (!res.ok) {
+    console.error("TMDB error", res.status);
+    return { results: [] };
+  }
+
+  return res.json();
 }
+
+export const IMG = "https://image.tmdb.org/t/p/w500";
