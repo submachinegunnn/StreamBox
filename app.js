@@ -34,12 +34,13 @@ window.location.href = type === 'movie'
 
 
 function loadContinue() {
-continueEl.innerHTML = Object.keys(localStorage)
-.filter(k => k.startsWith('progress-'))
-.map(k => {
-const d = JSON.parse(localStorage.getItem(k));
-return card(d, d.type);
-}).join('');
+  continueEl.innerHTML = Object.keys(localStorage)
+    .filter(k => k.startsWith('progress-'))
+    .slice(0, 10)
+    .map(k => {
+      const d = JSON.parse(localStorage.getItem(k));
+      return card(d, d.type);
+    }).join('');
 }
 
 
@@ -59,3 +60,4 @@ tvEl.innerHTML = '';
 };
 
 loadHome()
+
