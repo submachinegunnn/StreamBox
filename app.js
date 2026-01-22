@@ -9,6 +9,32 @@ document.addEventListener("DOMContentLoaded", () => {
   const movies = document.getElementById("movies");
   const tv = document.getElementById("tv");
 
+  const playerOverlay = document.getElementById("player-overlay");
+  const playerFrame = document.getElementById("player-frame");
+  const closePlayer = document.getElementById("close-player");
+
+  function openPlayer(item) {
+    const type = item.media_type === "tv" ? "tv" : "movie";
+    let url;
+
+    if (type === "movie") {
+      url = `https://www.vidking.net/embed/movie/${item.id}?autoPlay=true`;
+    } else {
+      url = `https://www.vidking.net/embed/tv/${item.id}/1/1?autoPlay=true&episodeSelector=true&nextEpisode=true`;
+    }
+
+  playerFrame.src = url;
+  playerOverlay.hidden = false;
+
+  saveContinueWatching(item);
+}
+
+closePlayer.onclick = () => {
+  playerOverlay.hidden = true;
+  playerFrame.src = "";
+};
+
+
   async function tmdb(endpoint) {
     const res = await fetch(`${BASE}${endpoint}`, {
       headers: {
@@ -53,3 +79,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
   load();
 });
+
