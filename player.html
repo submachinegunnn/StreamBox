@@ -1,16 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Player</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
+<body class="player-page">
 
-<body class="player">
+  <button class="back-btn" onclick="history.back()">←</button>
 
-<a class="back" href="index.html">←</a>
-<iframe id="frame" allowfullscreen></iframe>
+  <iframe
+    id="player"
+    allowfullscreen
+    allow="autoplay"
+  ></iframe>
 
-<script src="player.js"></script>
+  <script src="player.js"></script>
 </body>
 </html>
