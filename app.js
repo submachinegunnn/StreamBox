@@ -121,6 +121,22 @@ document.addEventListener("click", e => {
   }
 });
 
+document.querySelectorAll(".mobile-nav button").forEach(btn => {
+  btn.onclick = () => {
+    document
+      .querySelectorAll(".mobile-nav button")
+      .forEach(b => b.classList.remove("active"));
+
+    btn.classList.add("active");
+
+    if (btn.dataset.tab === "search") {
+      document.getElementById("search").focus();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+});
+
+
 /* ===========================
    INIT
 =========================== */
@@ -129,3 +145,4 @@ loadHero();
 loadRail("/trending/all/week", "trending");
 loadRail("/movie/popular", "movies");
 loadRail("/tv/popular", "tv");
+
