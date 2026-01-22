@@ -12,18 +12,19 @@ const search = document.getElementById("search");
 function card(item) {
   const el = document.createElement("div");
   el.className = "card";
-  el.innerHTML = `<img src="${IMG}${item.poster_path}">`;
+
+  el.innerHTML = `
+    <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" />
+  `;
 
   el.onclick = () => {
-    if (item.media_type === "tv" || item.first_air_date) {
-      location.href = `episode.html?id=${item.id}`;
-    } else {
-      location.href = `player.html?type=movie&id=${item.id}`;
-    }
+    const type = item.media_type === "tv" ? "tv" : "movie";
+    window.location.href = `/player.html?id=${item.id}&type=${type}`;
   };
 
   return el;
 }
+
 
 function render(list, el) {
   el.innerHTML = "";
@@ -46,3 +47,4 @@ search.onkeydown = e => {
 };
 
 load();
+
