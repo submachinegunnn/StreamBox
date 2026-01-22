@@ -16,35 +16,6 @@ body {
   background: var(--bg);
   color: var(--text);
 }
-
-/* Top Bar */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 20px 40px;
-  background: rgba(11,11,15,.7);
-  backdrop-filter: blur(20px);
-}
-
-.logo {
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-#search {
-  flex: 1;
-  max-width: 420px;
-  padding: 12px 18px;
-  border-radius: 14px;
-  border: none;
-  background: #1b1b23;
-  color: white;
-}
-
 /* Hero */
 #hero {
   height: 65vh;
@@ -106,3 +77,40 @@ body {
 .search-overlay.active {
   display: block;
 }
+.topbar {
+  display: flex;
+  align-items: center;
+  padding: 24px 48px;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.search-wrap {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+#search {
+  width: 480px;
+  max-width: 90%;
+  padding: 14px 20px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  color: white;
+  font-size: 16px;
+  backdrop-filter: blur(12px);
+  transition: all 0.25s ease;
+}
+
+#search:focus {
+  outline: none;
+  background: rgba(255,255,255,0.12);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
+}
+
