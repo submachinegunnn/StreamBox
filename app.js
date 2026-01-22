@@ -1,39 +1,22 @@
 document.addEventListener("DOMContentLoaded", () => {
   console.log("✅ DOM loaded");
 
-  const TMDB_TOKEN = window.TMDB_API_KEY; // this is your v4 READ TOKEN
+  const TMDB_TOKEN = window.TMDB_API_KEY;
   const BASE = "https://api.themoviedb.org/3";
   const IMG = "https://image.tmdb.org/t/p/w500";
 
-  const trending = document.getElementById("trending");
-  const movies = document.getElementById("movies");
-  const tv = document.getElementById("tv");
+  const trendingRail = document.getElementById("trending");
+  const moviesRail = document.getElementById("movies");
+  const tvRail = document.getElementById("tv");
+  const continueRail = document.getElementById("continue");
+
+  const searchInput = document.getElementById("search");
 
   const playerOverlay = document.getElementById("player-overlay");
   const playerFrame = document.getElementById("player-frame");
   const closePlayer = document.getElementById("close-player");
 
-  function openPlayer(item) {
-    const type = item.media_type === "tv" ? "tv" : "movie";
-    let url;
-
-    if (type === "movie") {
-      url = `https://www.vidking.net/embed/movie/${item.id}?autoPlay=true`;
-    } else {
-      url = `https://www.vidking.net/embed/tv/${item.id}/1/1?autoPlay=true&episodeSelector=true&nextEpisode=true`;
-    }
-
-  playerFrame.src = url;
-  playerOverlay.hidden = false;
-
-  saveContinueWatching(item);
-}
-
-closePlayer.onclick = () => {
-  playerOverlay.hidden = true;
-  playerFrame.src = "";
-};
-
+  /* ---------------- TMDB ---------------- */
 
   async function tmdb(endpoint) {
     const res = await fetch(`${BASE}${endpoint}`, {
@@ -42,108 +25,120 @@ closePlayer.onclick = () => {
         "Content-Type": "application/json"
       }
     });
-
-    const data = await res.json();
-    return data;
+    return res.json();
   }
 
-  function card(item) {
-  const el = document.createElement("div");
-  el.className = "card";
+  /* ---------------- PLAYER ---------------- */
 
-  el.innerHTML = `
-    <img src="${IMG + item.poster_path}" alt="">
-  `;
+  function openPlayer(item, type) {
+    let url;
 
-  el.onclick = () => openPlayer(item);
+    if (type === "tv") {
+      url = `https://www.vidking.net/embed/tv/${item.id}/1/1?autoPlay=true&episodeSelector=true&nextEpisode=true`;
+    } else {
+      url = `https://www.vidking.net/embed/movie/${item.id}?autoPlay=true`;
+    }
 
-  return el;
-}
+    playerFrame.src = url;
+    playerOverlay.hidden = false;
 
+    saveContinueWatching(item, type);
+  }
+
+  closePlayer.onclick = () => {
+    playerOverlay.hidden = true;
+    playerFrame.src = "";
+  };
+
+  /* ---------------- CARDS ---------------- */
+
+  function card(item, type) {
+    const el = document.createElement("div");
+    el.className = "card";
+
+    el.innerHTML = `
+      <img src="${IMG + item.poster_path}" alt="">
+    `;
+
+    el.onclick = () => openPlayer(item, type);
+    return el;
+  }
+
+  /* ---------------- LOAD RAILS ---------------- */
 
   async function load() {
     const t = await tmdb("/trending/all/week");
     t.results
       .filter(i => i.poster_path)
-      .forEach(i => trending.appendChild(card(i)));
+      .forEach(i =>
+        trendingRail.appendChild(card(i, i.media_type))
+      );
 
     const m = await tmdb("/movie/popular");
     m.results
       .filter(i => i.poster_path)
-      .forEach(i => movies.appendChild(card(i)));
+      .forEach(i =>
+        moviesRail.appendChild(card(i, "movie"))
+      );
 
     const s = await tmdb("/tv/popular");
     s.results
       .filter(i => i.poster_path)
-      .forEach(i => tv.appendChild(card(i)));
+      .forEach(i =>
+        tvRail.appendChild(card(i, "tv"))
+      );
 
     console.log("✅ Cards rendered");
   }
 
-  function saveContinueWatching(item) {
-  const list = JSON.parse(localStorage.getItem("continue") || "[]");
+  /* ---------------- CONTINUE WATCHING ---------------- */
 
-  if (!list.find(i => i.id === item.id)) {
-    list.unshift(item);
-    localStorage.setItem("continue", JSON.stringify(list.slice(0, 10)));
+  function saveContinueWatching(item, type) {
+    const list = JSON.parse(localStorage.getItem("continue") || "[]");
+
+    if (!list.find(i => i.id === item.id)) {
+      list.unshift({ ...item, media_type: type });
+      localStorage.setItem("continue", JSON.stringify(list.slice(0, 10)));
+    }
+
+    loadContinueWatching();
   }
-}
 
-async function loadContinueWatching() {
-  const list = JSON.parse(localStorage.getItem("continue") || "[]");
-  continueRail.innerHTML = "";
-  list.forEach(i => continueRail.appendChild(card(i)));
-}
+  function loadContinueWatching() {
+    const list = JSON.parse(localStorage.getItem("continue") || "[]");
+    continueRail.innerHTML = "";
+    list.forEach(i =>
+      continueRail.appendChild(card(i, i.media_type))
+    );
+  }
 
-  searchInput.addEventListener("keydown", async e => {
-  if (e.key !== "Enter") return;
-
-  const q = searchInput.value.trim();
-  if (!q) return;
-
-  const data = await tmdb(`/search/multi?query=${encodeURIComponent(q)}`);
-
-  document.getElementById("search-page").hidden = false;
-  trendingRail.parentElement.hidden = true;
-  moviesRail.parentElement.hidden = true;
-  tvRail.parentElement.hidden = true;
-
-  const grid = document.getElementById("search-grid");
-  grid.innerHTML = "";
-
-  data.results
-    .filter(i => i.poster_path)
-    .forEach(i => grid.appendChild(card(i)));
-});
+  /* ---------------- SEARCH PAGE ---------------- */
 
   searchInput.addEventListener("keydown", async e => {
-  if (e.key !== "Enter") return;
+    if (e.key !== "Enter") return;
 
-  const q = searchInput.value.trim();
-  if (!q) return;
+    const q = searchInput.value.trim();
+    if (!q) return;
 
-  const data = await tmdb(`/search/multi?query=${encodeURIComponent(q)}`);
+    const data = await tmdb(`/search/multi?query=${encodeURIComponent(q)}`);
 
-  document.getElementById("search-page").hidden = false;
-  trendingRail.parentElement.hidden = true;
-  moviesRail.parentElement.hidden = true;
-  tvRail.parentElement.hidden = true;
+    document.getElementById("search-page").hidden = false;
+    trendingRail.parentElement.hidden = true;
+    moviesRail.parentElement.hidden = true;
+    tvRail.parentElement.hidden = true;
 
-  const grid = document.getElementById("search-grid");
-  grid.innerHTML = "";
+    const grid = document.getElementById("search-grid");
+    grid.innerHTML = "";
 
-  data.results
-    .filter(i => i.poster_path)
-    .forEach(i => grid.appendChild(card(i)));
-});
+    data.results
+      .filter(i => i.poster_path)
+      .forEach(i =>
+        grid.appendChild(card(i, i.media_type))
+      );
+  });
 
-
+  /* ---------------- INIT ---------------- */
 
   loadContinueWatching();
   load();
 });
-
-
-
-
-
