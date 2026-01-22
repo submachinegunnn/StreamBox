@@ -1,17 +1,23 @@
-const params = new URLSearchParams(location.search);
-const id = params.get("id");
-const type = params.get("type");
-const season = params.get("season") || 1;
-const episode = params.get("episode") || 1;
+const p = new URLSearchParams(location.search);
+const type = p.get("type");
+const id = p.get("id");
+const s = p.get("s") || 1;
+const e = p.get("e") || 1;
 
-const iframe = document.getElementById("player");
+const frame = document.getElementById("frame");
+let url;
 
-let src = "";
-
-if (type === "tv") {
-  src = `https://www.vidking.net/embed/tv/${id}/${season}/${episode}?autoPlay=true&nextEpisode=true&episodeSelector=true`;
+if (type === "movie") {
+  url = `https://www.vidking.net/embed/movie/${id}?autoPlay=true`;
 } else {
-  src = `https://www.vidking.net/embed/movie/${id}?autoPlay=true`;
+  url = `https://www.vidking.net/embed/tv/${id}/${s}/${e}?autoPlay=true&nextEpisode=true`;
 }
 
-iframe.src = src;
+frame.src = url;
+
+/* Save continue watching */
+const list = JSON.parse(localStorage.getItem("continue") || "[]");
+if (!list.find(i => i.id == id)) {
+  list.unshift({ id, media_type: type });
+  localStorage.setItem("continue", JSON.stringify(list.slice(0, 10)));
+}
