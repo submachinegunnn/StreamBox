@@ -1,20 +1,17 @@
-const q=new URLSearchParams(location.search);
-const type=q.get('type');
-const id=q.get('id');
+const params = new URLSearchParams(location.search);
+const id = params.get("id");
+const type = params.get("type");
 
+let url =
+  type === "movie"
+    ? `https://www.vidking.net/embed/movie/${id}?autoPlay=true`
+    : `https://www.vidking.net/embed/tv/${id}/1/1?autoPlay=true&nextEpisode=true&episodeSelector=true`;
 
-const src= type==='tv'
-?`https://www.vidking.net/embed/tv/${id}/1/1?autoPlay=true&nextEpisode=true&episodeSelector=true`
-:`https://www.vidking.net/embed/movie/${id}?autoPlay=true`;
+document.getElementById("player").innerHTML = `
+  <iframe src="${url}" width="100%" height="600" frameborder="0" allowfullscreen></iframe>
+`;
 
-
-player.innerHTML=`<iframe src="${src}" allowfullscreen></iframe>`;
-
-
-window.addEventListener('message',e=>{
-if(typeof e.data!=='string')return;
-const m=JSON.parse(e.data);
-if(m.type!=='PLAYER_EVENT')return;
-localStorage.setItem(`watch-${id}`,JSON.stringify({id,type,season:m.data.season,episode:m.data.episode}));
-if(m.data.event==='ended'&&type==='tv')location.href=`/player.html?type=tv&id=${id}`;
+window.addEventListener("message", e => {
+  if (!e.data?.includes("PLAYER_EVENT")) return;
+  localStorage.setItem("continue_" + id, e.data);
 });
