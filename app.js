@@ -115,6 +115,12 @@ async function runSearch(query) {
   });
 }
 
+document.addEventListener("click", e => {
+  if (!e.target.closest("#search")) {
+    resultsBox.style.display = "none";
+  }
+});
+
 /* ===========================
    INIT
 =========================== */
