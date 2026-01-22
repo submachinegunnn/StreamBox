@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   console.log("✅ DOM loaded");
 
-  const API_KEY = window.TMDB_API_KEY;
+  const TMDB_TOKEN = window.TMDB_API_KEY; // this is your v4 READ TOKEN
   const BASE = "https://api.themoviedb.org/3";
   const IMG = "https://image.tmdb.org/t/p/w500";
 
@@ -9,21 +9,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const movies = document.getElementById("movies");
   const tv = document.getElementById("tv");
 
-  console.log("Rails:", { trending, movies, tv });
+  async function tmdb(endpoint) {
+    const res = await fetch(`${BASE}${endpoint}`, {
+      headers: {
+        Authorization: `Bearer ${TMDB_TOKEN}`,
+        "Content-Type": "application/json"
+      }
+    });
 
-  if (!trending || !movies || !tv) {
-    console.error("❌ One or more rails not found in DOM");
-    return;
-  }
-
-  async function get(url) {
-    const full = `${BASE}${url}?api_key=${API_KEY}`;
-    console.log("Fetching:", full);
-
-    const res = await fetch(full);
     const data = await res.json();
-
-    console.log("Response:", data);
     return data;
   }
 
@@ -39,22 +33,22 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function load() {
-    const t = await get("/trending/all/week");
+    const t = await tmdb("/trending/all/week");
     t.results
       .filter(i => i.poster_path)
       .forEach(i => trending.appendChild(card(i)));
 
-    const m = await get("/movie/popular");
+    const m = await tmdb("/movie/popular");
     m.results
       .filter(i => i.poster_path)
       .forEach(i => movies.appendChild(card(i)));
 
-    const s = await get("/tv/popular");
+    const s = await tmdb("/tv/popular");
     s.results
       .filter(i => i.poster_path)
       .forEach(i => tv.appendChild(card(i)));
 
-    console.log("✅ Cards appended");
+    console.log("✅ Cards rendered");
   }
 
   load();
