@@ -80,7 +80,24 @@ closePlayer.onclick = () => {
     console.log("✅ Cards rendered");
   }
 
+  function saveContinueWatching(item) {
+  const list = JSON.parse(localStorage.getItem("continue") || "[]");
+
+  if (!list.find(i => i.id === item.id)) {
+    list.unshift(item);
+    localStorage.setItem("continue", JSON.stringify(list.slice(0, 10)));
+  }
+}
+
+async function loadContinueWatching() {
+  const list = JSON.parse(localStorage.getItem("continue") || "[]");
+  continueRail.innerHTML = "";
+  list.forEach(i => continueRail.appendChild(card(i)));
+}
+
+  loadContinueWatching();
   load();
 });
+
 
 
