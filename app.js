@@ -1,113 +1,111 @@
-const moviesRail = document.getElementById("movies");
-const tvRail = document.getElementById("tv");
-const continueRail = document.getElementById("continue");
+/* ==============================
+   DOM
+============================== */
 const searchInput = document.getElementById("search");
+
+const rails = {
+  continue: document.getElementById("continue"),
+  trending: document.getElementById("trending"),
+  movies: document.getElementById("movies"),
+  tv: document.getElementById("tv")
+};
 
 const IMG = "https://image.tmdb.org/t/p/w500";
 
-/* -----------------------------
-   FETCH HELPER (API PROXY)
------------------------------ */
+/* ==============================
+   TMDB FETCH (API PROXY)
+============================== */
 async function tmdb(path) {
   const res = await fetch(`/api/tmdb?path=${encodeURIComponent(path)}`);
+  if (!res.ok) throw new Error("TMDB error");
   return res.json();
 }
 
-/* -----------------------------
+/* ==============================
    CARD RENDER
------------------------------ */
-function renderCard(item, type, container) {
+============================== */
+function createCard(item, type, container) {
   if (!item.poster_path) return;
 
   const card = document.createElement("div");
   card.className = "card";
   card.innerHTML = `
-    <img src="${IMG}${item.poster_path}">
+    <img src="${IMG}${item.poster_path}" alt="${item.title || item.name}">
     <p>${item.title || item.name}</p>
   `;
 
-  card.onclick = () => {
-    window.location.href =
-      type === "movie"
-        ? `/watch.html?id=${item.id}`
-        : `/tv.html?id=${item.id}`;
-  };
+  card.addEventListener("click", () => {
+    window.location.href = `/watch.html?id=${item.id}&type=${type}`;
+  });
 
   container.appendChild(card);
 }
 
-/* -----------------------------
-   LOAD HOME
------------------------------ */
+/* ==============================
+   LOAD HOME CONTENT
+============================== */
 async function loadHome() {
-  moviesRail.innerHTML = "";
-  tvRail.innerHTML = "";
+  rails.trending.innerHTML = "";
+  rails.movies.innerHTML = "";
+  rails.tv.innerHTML = "";
 
-  const movies = await tmdb("/movie/popular");
-  const tv = await tmdb("/tv/popular");
+  const [trending, movies, tv] = await Promise.all([
+    tmdb("/trending/all/week"),
+    tmdb("/movie/popular"),
+    tmdb("/tv/popular")
+  ]);
 
-  movies.results.forEach(m =>
-    renderCard(m, "movie", moviesRail)
+  trending.results.forEach(item => {
+    if (item.media_type === "movie") {
+      createCard(item, "movie", rails.trending);
+    }
+    if (item.media_type === "tv") {
+      createCard(item, "tv", rails.trending);
+    }
+  });
+
+  movies.results.forEach(item =>
+    createCard(item, "movie", rails.movies)
   );
 
-  tv.results.forEach(t =>
-    renderCard(t, "tv", tvRail)
+  tv.results.forEach(item =>
+    createCard(item, "tv", rails.tv)
   );
-
-  loadContinue();
 }
 
-/* -----------------------------
-   SEARCH (REAL TMDB)
------------------------------ */
-let debounce;
-searchInput.addEventListener("input", e => {
-  clearTimeout(debounce);
-  const q = e.target.value.trim();
+/* ==============================
+   SEARCH (MULTI)
+============================== */
+searchInput.addEventListener("input", async e => {
+  const query = e.target.value.trim();
 
-  debounce = setTimeout(() => {
-    if (!q) return loadHome();
-    search(q);
-  }, 400);
-});
+  if (!query) {
+    loadHome();
+    return;
+  }
 
-async function search(query) {
-  moviesRail.innerHTML = "";
-  tvRail.innerHTML = "";
+  rails.trending.innerHTML = "";
+  rails.movies.innerHTML = "";
+  rails.tv.innerHTML = "";
 
-  const res = await tmdb(`/search/multi?query=${query}`);
+  const results = await tmdb(
+    `/search/multi?query=${encodeURIComponent(query)}`
+  );
 
-  res.results.forEach(item => {
+  results.results.forEach(item => {
     if (!item.poster_path) return;
 
     if (item.media_type === "movie") {
-      renderCard(item, "movie", moviesRail);
+      createCard(item, "movie", rails.movies);
     }
 
     if (item.media_type === "tv") {
-      renderCard(item, "tv", tvRail);
+      createCard(item, "tv", rails.tv);
     }
   });
-}
+});
 
-
-/* -----------------------------
-   CONTINUE WATCHING
------------------------------ */
-function loadContinue() {
-  continueRail.innerHTML = "";
-
-  Object.keys(localStorage)
-    .filter(k => k.startsWith("progress-"))
-    .slice(0, 10)
-    .forEach(k => {
-      const item = JSON.parse(localStorage.getItem(k));
-      renderCard(item, item.type, continueRail);
-    });
-}
-
-/* -----------------------------
+/* ==============================
    INIT
------------------------------ */
+============================== */
 loadHome();
-
