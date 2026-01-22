@@ -1,54 +1,125 @@
-const TOKEN = import.meta?.env?.TMDB_TOKEN || "";
-const API = "https://api.themoviedb.org/3";
 const IMG = "https://image.tmdb.org/t/p/w500";
 
-const headers = {
-  Authorization: `Bearer ${TOKEN}`,
-  "Content-Type": "application/json"
-};
+/* ===========================
+   HELPERS
+=========================== */
 
-const rails = {
-  trending: "/trending/all/week",
-  movies: "/movie/popular",
-  tv: "/tv/popular"
-};
-
-async function fetchList(endpoint, container) {
-  const res = await fetch(API + endpoint, { headers });
-  const data = await res.json();
-  renderCards(data.results, container);
+async function tmdb(endpoint) {
+  const res = await fetch(`/api/tmdb?endpoint=${endpoint}`);
+  return res.json();
 }
 
-function renderCards(items, containerId) {
-  const el = document.getElementById(containerId);
-  el.innerHTML = "";
+function createCard(item) {
+  if (!item.poster_path) return null;
 
-  items.forEach(i => {
-    if (!i.poster_path) return;
+  const card = document.createElement("div");
+  card.className = "card";
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <img src="${IMG + i.poster_path}" />
-    `;
-    card.onclick = () => openPlayer(i);
-    el.appendChild(card);
+  card.innerHTML = `
+    <img src="${IMG + item.poster_path}" loading="lazy" />
+  `;
+
+  card.onclick = () => {
+    const type = item.media_type || (item.title ? "movie" : "tv");
+    window.location.href = `player.html?id=${item.id}&type=${type}`;
+  };
+
+  return card;
+}
+
+/* ===========================
+   HERO
+=========================== */
+
+async function loadHero() {
+  const data = await tmdb("/trending/movie/week");
+  const movie = data.results[0];
+
+  const hero = document.getElementById("hero");
+  hero.style.backgroundImage =
+    `linear-gradient(to top, #000 10%, transparent 60%), 
+     url(${IMG + movie.backdrop_path})`;
+
+  hero.innerHTML = `
+    <div class="hero-content">
+      <h1>${movie.title}</h1>
+      <p>${movie.overview}</p>
+      <button onclick="playHero(${movie.id})">▶ Play</button>
+    </div>
+  `;
+}
+
+window.playHero = id => {
+  window.location.href = `player.html?id=${id}&type=movie`;
+};
+
+/* ===========================
+   RAILS
+=========================== */
+
+async function loadRail(endpoint, containerId) {
+  const data = await tmdb(endpoint);
+  const container = document.getElementById(containerId);
+  container.innerHTML = "";
+
+  data.results.forEach(item => {
+    const card = createCard(item);
+    if (card) container.appendChild(card);
   });
 }
 
-function openPlayer(item) {
-  const type = item.media_type || (item.title ? "movie" : "tv");
-  location.href = `player.html?id=${item.id}&type=${type}`;
+/* ===========================
+   SEARCH (AUTOCOMPLETE)
+=========================== */
+
+const searchInput = document.getElementById("search");
+const resultsBox = document.getElementById("search-results");
+
+let searchTimeout;
+
+searchInput.addEventListener("input", () => {
+  clearTimeout(searchTimeout);
+
+  const q = searchInput.value.trim();
+  if (!q) {
+    resultsBox.innerHTML = "";
+    resultsBox.style.display = "none";
+    return;
+  }
+
+  searchTimeout = setTimeout(() => runSearch(q), 300);
+});
+
+async function runSearch(query) {
+  const data = await tmdb(`/search/multi?query=${encodeURIComponent(query)}`);
+  resultsBox.innerHTML = "";
+  resultsBox.style.display = "block";
+
+  data.results.slice(0, 8).forEach(item => {
+    if (!item.poster_path) return;
+
+    const row = document.createElement("div");
+    row.className = "search-item";
+
+    row.innerHTML = `
+      <img src="${IMG + item.poster_path}" />
+      <span>${item.title || item.name}</span>
+    `;
+
+    row.onclick = () => {
+      const type = item.media_type === "tv" ? "tv" : "movie";
+      window.location.href = `player.html?id=${item.id}&type=${type}`;
+    };
+
+    resultsBox.appendChild(row);
+  });
 }
 
-async function loadHero() {
-  const res = await fetch(API + "/trending/movie/week", { headers });
-  const movie = (await res.json()).results[0];
-  document.getElementById("hero").style.backgroundImage =
-    `url(${IMG + movie.backdrop_path})`;
-}
+/* ===========================
+   INIT
+=========================== */
 
 loadHero();
-fetchList(rails.trending, "trending");
-fetchList(rails.movies, "movies");
-fetchList(rails.tv, "tv");
+loadRail("/trending/all/week", "trending");
+loadRail("/movie/popular", "movies");
+loadRail("/tv/popular", "tv");
