@@ -48,15 +48,18 @@ closePlayer.onclick = () => {
   }
 
   function card(item) {
-    const el = document.createElement("div");
-    el.className = "card";
+  const el = document.createElement("div");
+  el.className = "card";
 
-    el.innerHTML = `
-      <img src="${IMG + item.poster_path}" alt="">
-    `;
+  el.innerHTML = `
+    <img src="${IMG + item.poster_path}" alt="">
+  `;
 
-    return el;
-  }
+  el.onclick = () => openPlayer(item);
+
+  return el;
+}
+
 
   async function load() {
     const t = await tmdb("/trending/all/week");
@@ -79,4 +82,5 @@ closePlayer.onclick = () => {
 
   load();
 });
+
 
