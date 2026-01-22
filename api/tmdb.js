@@ -1,13 +1,16 @@
 export default async function handler(req, res) {
-  const { path } = req.query;
+const { path } = req.query;
+if (!path) return res.status(400).json({ error: 'Missing path' });
 
-  const response = await fetch(`https://api.themoviedb.org/3${path}`, {
-    headers: {
-      Authorization: `Bearer ${process.env.TMDB_KEY}`,
-      'Content-Type': 'application/json'
-    }
-  });
 
-  const data = await response.json();
-  res.status(200).json(data);
+const r = await fetch(`https://api.themoviedb.org/3${path}`, {
+headers: {
+Authorization: `Bearer ${process.env.TMDB_KEY}`,
+'Content-Type': 'application/json'
+}
+});
+
+
+const data = await r.json();
+res.status(200).json(data);
 }
