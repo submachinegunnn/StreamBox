@@ -7,26 +7,9 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-  
-  <nav class="mobile-nav">
-  <button data-tab="home" class="active">
-    <span>🏠</span>
-    <small>Home</small>
-  </button>
-
-  <button data-tab="search">
-    <span>🔍</span>
-    <small>Search</small>
-  </button>
-
-  <button data-tab="library">
-    <span>📺</span>
-    <small>Library</small>
-  </button>
-</nav>
-
 
 <body>
+
 <header class="topbar">
   <h1 class="logo">StreamBox</h1>
 
@@ -36,7 +19,7 @@
       placeholder="Search movies, shows, actors"
       autocomplete="off"
     />
-    <div id="search-results"></div>
+    <div id="search-results" class="search-overlay"></div>
   </div>
 </header>
 
@@ -62,11 +45,23 @@
   <div id="tv" class="rail"></div>
 </section>
 
-<div id="search-results" class="search-overlay"></div>
+<nav class="mobile-nav">
+  <button data-tab="home" class="active">
+    <span>🏠</span>
+    <small>Home</small>
+  </button>
+
+  <button data-tab="search">
+    <span>🔍</span>
+    <small>Search</small>
+  </button>
+
+  <button data-tab="library">
+    <span>📺</span>
+    <small>Library</small>
+  </button>
+</nav>
 
 <script src="app.js"></script>
 </body>
 </html>
-
-
-
