@@ -95,9 +95,32 @@ async function loadContinueWatching() {
   list.forEach(i => continueRail.appendChild(card(i)));
 }
 
+  searchInput.addEventListener("keydown", async e => {
+  if (e.key !== "Enter") return;
+
+  const q = searchInput.value.trim();
+  if (!q) return;
+
+  const data = await tmdb(`/search/multi?query=${encodeURIComponent(q)}`);
+
+  document.getElementById("search-page").hidden = false;
+  trendingRail.parentElement.hidden = true;
+  moviesRail.parentElement.hidden = true;
+  tvRail.parentElement.hidden = true;
+
+  const grid = document.getElementById("search-grid");
+  grid.innerHTML = "";
+
+  data.results
+    .filter(i => i.poster_path)
+    .forEach(i => grid.appendChild(card(i)));
+});
+
+
   loadContinueWatching();
   load();
 });
+
 
 
 
