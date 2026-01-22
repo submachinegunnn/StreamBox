@@ -265,3 +265,11 @@ section h2 {
   padding: 10px 14px;
   border-radius: 50%;
 }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
