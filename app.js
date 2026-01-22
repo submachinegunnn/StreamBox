@@ -5,6 +5,18 @@ const rails = {
   tv: document.getElementById("tv"),
 };
 
+const searchInput = document.getElementById("search");
+
+searchInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const query = searchInput.value.trim();
+    if (query.length > 0) {
+      runSearch(query);
+    }
+  }
+});
+
 async function tmdb(path, query = "") {
   const res = await fetch(`/api/tmdb?path=${path}&query=${query}`);
   return res.json();
@@ -38,3 +50,4 @@ async function loadHome() {
 }
 
 loadHome();
+
